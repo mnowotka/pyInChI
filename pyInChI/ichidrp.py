@@ -1,181 +1,122 @@
-/*
- * International Chemical Identifier (InChI)
- * Version 1
- * Software version 1.04
- * September 9, 2011
- *
- * The InChI library and programs are free software developed under the
- * auspices of the International Union of Pure and Applied Chemistry (IUPAC).
- * Originally developed at NIST. Modifications and additions by IUPAC 
- * and the InChI Trust.
- *
- * IUPAC/InChI-Trust Licence No.1.0 for the 
- * International Chemical Identifier (InChI) Software version 1.04
- * Copyright (C) IUPAC and InChI Trust Limited
- * 
- * This library is free software; you can redistribute it and/or modify it 
- * under the terms of the IUPAC/InChI Trust InChI Licence No.1.0, 
- * or any later version.
- * 
- * Please note that this library is distributed WITHOUT ANY WARRANTIES 
- * whatsoever, whether expressed or implied.  See the IUPAC/InChI Trust 
- * Licence for the International Chemical Identifier (InChI) Software 
- * version 1.04, October 2011 ("IUPAC/InChI-Trust InChI Licence No.1.0") 
- * for more details.
- * 
- * You should have received a copy of the IUPAC/InChI Trust InChI 
- * Licence No. 1.0 with this library; if not, please write to:
- * 
- * The InChI Trust
- * c/o FIZ CHEMIE Berlin
- *
- * Franklinstrasse 11
- * 10587 Berlin
- * GERMANY
- *
- * or email to: ulrich@inchi-trust.org.
- * 
- */
+from enum import enum
+from struct import Struct
 
+##############################################
+## Parameters for the structure drawing     ##
+##############################################
 
-#ifndef __INCHIDRP_H__
-#define __INCHIDRP_H__
+TDP_LEN_LBL = 16
 
-#ifndef COMPILE_ANSI_ONLY /* { */
-/********************************************
- * Parameters for the structure drawing
- ********************************************/
-#define TDP_LEN_LBL      16  /* length of a label (label: Req., Shown, Found) */
-/* #define TDP_NUM_LBL 3  */ /* number of labels */
-/* #define TDP_NUM_PAR 3  */ /* number of types per label (types: B/T, I/N, S) */
-typedef enum tagTblTypes {itBASIC, itISOTOPIC, itSTEREO, TDP_NUM_PAR} TBL_TYPES; /*  types */
-typedef enum tagTblLabels{ ilSHOWN,  TDP_NUM_LBL} TBL_LABELS; /*  labels */
-typedef struct tagTblDrawPatms {
-    char   ReqShownFoundTxt[TDP_NUM_LBL][TDP_LEN_LBL];
-    char   ReqShownFound[TDP_NUM_LBL][TDP_NUM_PAR];
-    int    nOrientation;  /* 10*degrees: 0 or 2700 */
-    int    bDrawTbl;
-} TBL_DRAW_PARMS;
-/*********************************************/
-typedef struct tagDrawParmsSettings {
-    TBL_DRAW_PARMS *tdp;
-    unsigned long  ulDisplTime;
-    int            bOrigAtom;
-    int            nFontSize;
-} SET_DRAW_PARMS;  /* input only: how to draw or calculate */
-/*********************************************/
-typedef struct tagReturnedDrawParms {
-    int       bEsc;
-} RET_DRAW_PARMS;
-/*********************************************/
-typedef struct tagPersistDrawParms {
-    int rcPict[4];
-} PER_DRAW_PARMS; /* saved between displaying different structures */
-/*********************************************/
-typedef struct tagDrawParms {
-    SET_DRAW_PARMS  sdp;   /* how to draw: fill on the 1st call */
-    RET_DRAW_PARMS  rdp;   /* returned when drawing window is closed */
-    PER_DRAW_PARMS *pdp;   /* persistent: save between calls (window size) */
-#ifndef TARGET_LIB_FOR_WINCHI
-#ifndef COMPILE_ANSI_ONLY
-    AT_NUMB   *nEquLabels; /* num_inp_atoms elements, value>0 marks atoms in the set #value  */
-    AT_NUMB    nNumEquSets;  /* max mark value */
-    AT_NUMB    nCurEquLabel; /* current mark */
-#endif
-#endif
-} DRAW_PARMS; /* Settings: How to draw the structure */
+TBL_TYPES = enum(
+    itBASIC = 0, 
+    itISOTOPIC = 1, 
+    itSTEREO = 2, 
+    TDP_NUM_PAR =3
+)
 
-#endif /* } COMPILE_ANSI_ONLY */
+TBL_LABELS = enum(
+    ilSHOWN = 0,
+    TDP_NUM_LBL = 1
+)
 
-#define MAX_NUM_PATHS 4
+class TBL_DRAW_PARMS(Struct):
+    ReqShownFoundTxt = None
+    ReqShownFound = None
+    nOrientation = None # 10*degrees: 0 or 2700
+    bDrawTbl = None
 
+class SET_DRAW_PARMS(Struct): # input only: how to draw or calculate
+    tdp = None
+    ulDisplTime = None
+    bOrigAtom = None
+    nFontSize = None
+ 
+class RET_DRAW_PARMS(Struct):
+    bEsc = None
 
-typedef enum tagInputType { INPUT_NONE=0, INPUT_MOLFILE=1, INPUT_SDFILE=2, INPUT_INCHI_XML=3, INPUT_INCHI_PLAIN=4, INPUT_CMLFILE=5, INPUT_INCHI=6, INPUT_MAX } INPUT_TYPE;
+class PER_DRAW_PARMS(Struct): # saved between displaying different structures
+    rcPict = None
 
-/* bCalcInChIHash values */
-typedef enum tagInChIHashCalc 
-{   
-    INCHIHASH_NONE=0, 
-    INCHIHASH_KEY=1, 
-    INCHIHASH_KEY_XTRA1=2, 
-    INCHIHASH_KEY_XTRA2=3, 
-    INCHIHASH_KEY_XTRA1_XTRA2=4 
-} 
-INCHI_HASH_CALC;
+class DRAW_PARMS(Struct):
+    sdp = None # how to draw: fill on the 1st call
+    rdp = None # returned when drawing window is closed
+    pdp = None # persistent: save between calls (window size)
+    nEquLabels = None # num_inp_atoms elements, value>0 marks atoms in the set #value
+    nNumEquSets = None # max mark value
+    nCurEquLabel = None # current mark
 
-typedef struct tagInputParms {
-    char            szSdfDataHeader[MAX_SDF_HEADER+1];
-    char           *pSdfLabel;
-    char           *pSdfValue;
-    long            lSdfId;
-    long            lMolfileNumber;
-#ifndef COMPILE_ANSI_ONLY
-    DRAW_PARMS      dp;
-    PER_DRAW_PARMS  pdp;
-    TBL_DRAW_PARMS  tdp;
-#endif
-/*
-  -- Files --
-  ip->path[0] => Input
-  ip->path[1] => Output (INChI)
-  ip->path[2] => Log
-  ip->path[3] => Problem structures
-  ip->path[4] => Errors file (ACD)
+MAX_NUM_PATHS = 4
 
-*/
-    const char     *path[MAX_NUM_PATHS];
-    int             num_paths;
-    long            first_struct_number;
-    long            last_struct_number;
-    INPUT_TYPE      nInputType;
-    INCHI_MODE      nMode;
-    int             bAbcNumbers;
-    /*int             bXml;*/
-    int             bINChIOutputOptions; /* !(ip->bINChIOutputOptions & INCHI_OUT_PLAIN_TEXT) */
-    int             bCtPredecessors;
-    int             bXmlStarted;
-    int             bDisplayEachComponentINChI;
+INPUT_TYPE = enum(
+    INPUT_NONE = 0, 
+    INPUT_MOLFILE = 1, 
+    INPUT_SDFILE = 2, 
+    INPUT_INCHI_XML = 3, 
+    INPUT_INCHI_PLAIN = 4, 
+    INPUT_CMLFILE = 5, 
+    INPUT_INCHI = 6, 
+    INPUT_MAX = 7
+)
 
-    long            msec_MaxTime;   /* was ulMaxTime; max time to run ProsessOneStructure */
-    long            msec_LeftTime;
+## bCalcInChIHash values ##
+INCHI_HASH_CALC = enum(  
+    INCHIHASH_NONE = 0, 
+    INCHIHASH_KEY = 1, 
+    INCHIHASH_KEY_XTRA1 = 2, 
+    INCHIHASH_KEY_XTRA2 = 3, 
+    INCHIHASH_KEY_XTRA1_XTRA2 = 4 
+)
 
-    long            ulDisplTime; /* not used: max structure or question display time */
-    int             bDisplay;
-    int             bDisplayIfRestoreWarnings; /* InChI->Struct debug */
-    int             bMergeAllInputStructures;
-    int             bSaveWarningStructsAsProblem;
-    int             bSaveAllGoodStructsAsProblem;
-    int             bGetSdfileId;
-    int             bGetMolfileNumber;  /* read molfile number from the name line like "Structure #22" */
-    int             bCompareComponents; /* see flags CMP_COMPONENTS, etc. */
-    int             bDisplayCompositeResults;
-    int             bDoNotAddH;
-    int             bNoStructLabels;
-    int             bChiralFlag;
-    int             bAllowEmptyStructure;
-    /*^^^ */
-    int             bCalcInChIHash;
-    int             bFixNonUniformDraw; /* correct non-uniformly drawn oxoanions and amidinium cations. */
-    /*^^^ */
-    INCHI_MODE      bTautFlags;
-    INCHI_MODE      bTautFlagsDone;
+class INPUT_PARMS(Struct):
+    szSdfDataHeader = None
+    pSdfLabel = None
+    pSdfValue = None
+    lSdfId = None
+    lMolfileNumber = None
+    dp = None
+    pdp = None
+    tdp = None
+    path = None
+    num_paths = None
+    first_struct_number = None
+    last_struct_number = None
+    nInputType = None
+    nMode = None
+    bAbcNumbers = None
+    bINChIOutputOptions = None # !(ip->bINChIOutputOptions & INCHI_OUT_PLAIN_TEXT)
+    bCtPredecessors = None
+    bXmlStarted = None
+    bDisplayEachComponentINChI = None
 
-#if ( READ_INCHI_STRING == 1 )
-    int             bReadInChIOptions;
-#endif
+    msec_MaxTime = None # was ulMaxTime; max time to run ProsessOneStructure
+    msec_LeftTime = None
 
-/* post v.1 features */
-#if ( UNDERIVATIZE == 1 )
-    int             bUnderivatize;
-#endif
-#if ( RING2CHAIN == 1 )
-    int             bRing2Chain;
-#endif
-#if ( RING2CHAIN == 1 || UNDERIVATIZE == 1 )
-    int             bIngnoreUnchanged;
-#endif
+    ulDisplTime = None # not used: max structure or question display time
+    bDisplay = None
+    bDisplayIfRestoreWarnings = None # InChI->Struct debug
+    bMergeAllInputStructures = None
+    bSaveWarningStructsAsProblem = None
+    bSaveAllGoodStructsAsProblem = None
+    bGetSdfileId = None
+    bGetMolfileNumber = None # read molfile number from the name line like "Structure #22"
+    bCompareComponents = None # see flags CMP_COMPONENTS, etc.
+    bDisplayCompositeResults = None
+    bDoNotAddH = None
+    bNoStructLabels = None
+    bChiralFlag = None
+    bAllowEmptyStructure = None
+    
+    bCalcInChIHash = None
+    bFixNonUniformDraw = None # correct non-uniformly drawn oxoanions and amidinium cations.
 
-} INPUT_PARMS;
+    bTautFlags = None
+    bTautFlagsDone = None
 
-#endif /* __INCHIDRP_H__ */
+    bReadInChIOptions = None
+
+    ## post v.1 features ##
+    bUnderivatize = None
+    bRing2Chain = None
+
+    bIngnoreUnchanged = None
 
